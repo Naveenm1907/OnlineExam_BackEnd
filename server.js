@@ -4,17 +4,23 @@ import { getQuestions, submitAnswers } from "./controllers/quizController.js";
 
 const app = express();
 
-// CORS configuration for production
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://online-exam-front-end.vercel.app/quiz'] // Replace with your actual frontend domain
-    : ['http://localhost:3000', 'http://localhost:5173'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+// Simplified CORS configuration for serverless
+app.use(cors({
+  origin: [
+    'https://online-exam-front-end.vercel.app',
+    'http://localhost:3000', 
+    'http://localhost:5173'
+  ],
+  credentials: true
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
+
+// Add error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
 
 // Health check endpoint
 app.get("/", (req, res) => {

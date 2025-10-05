@@ -32,14 +32,21 @@ const questions = [
 // Mock database interface for compatibility
 const db = {
   prepare: (query) => {
+    console.log('Database query:', query);
     if (query.includes("SELECT * FROM questions")) {
       return {
-        all: () => questions
+        all: () => {
+          console.log('Returning questions:', questions.length);
+          return questions;
+        }
       };
     }
     if (query.includes("SELECT COUNT(*) AS count FROM questions")) {
       return {
-        get: () => ({ count: questions.length })
+        get: () => {
+          console.log('Question count:', questions.length);
+          return { count: questions.length };
+        }
       };
     }
     return {

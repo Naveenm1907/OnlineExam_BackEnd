@@ -2,25 +2,40 @@ import db from "../db.js";
 import Question from "../models/Questions.js";
 
 export const getQuestions = (req, res) => {
-  const rows = db.prepare("SELECT * FROM questions").all();
-  const questions = rows.map(r => {
-    const q = new Question(r);
-    delete q.correctOption;
-    return q;
-  });
-  res.json(questions);
+  try {
+    console.log('Getting questions...');
+    const rows = db.prepare("SELECT * FROM questions").all();
+    console.log('Found questions:', rows.length);
+    const questions = rows.map(r => {
+      const q = new Question(r);
+      delete q.correctOption;
+      return q;
+    });
+    res.json(questions);
+  } catch (error) {
+    console.error('Error in getQuestions:', error);
+    res.status(500).json({ error: 'Failed to fetch questions' });
+  }
 };
 
 export const submitAnswers = (req, res) => {
-  const { answers } = req.body;
-  const rows = db.prepare("SELECT * FROM questions").all();
-  let score = 0;
+  try {
+    console.log('Submitting answers...');
+    const { answers } = req.body;
+    console.log('Received answers:', answers);
+    const rows = db.prepare("SELECT * FROM questions").all();
+    let score = 0;
 
-  const results = rows.map(q => {
-    const correct = answers[q.id] === q.correctOption;
-    if (correct) score++;
-    return { id: q.id, question: q.text, correctOption: q.correctOption, userAnswer: answers[q.id], isCorrect: correct };
-  });
+    const results = rows.map(q => {
+      const correct = answers[q.id] === q.correctOption;
+      if (correct) score++;
+      return { id: q.id, question: q.text, correctOption: q.correctOption, userAnswer: answers[q.id], isCorrect: correct };
+    });
 
-  res.json({ score, total: rows.length, results });
+    console.log('Score calculated:', score);
+    res.json({ score, total: rows.length, results });
+  } catch (error) {
+    console.error('Error in submitAnswers:', error);
+    res.status(500).json({ error: 'Failed to submit answers' });
+  }
 };
