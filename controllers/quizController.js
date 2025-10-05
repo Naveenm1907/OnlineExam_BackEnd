@@ -1,5 +1,6 @@
 import db from "../db.js";
 import Question from "../models/Questions.js";
+import { scoreAnswers } from "../utils/score.js";
 
 export const getQuestions = (req, res) => {
   try {
@@ -24,16 +25,9 @@ export const submitAnswers = (req, res) => {
     const { answers } = req.body;
     console.log('Received answers:', answers);
     const rows = db.prepare("SELECT * FROM questions").all();
-    let score = 0;
-
-    const results = rows.map(q => {
-      const correct = answers[q.id] === q.correctOption;
-      if (correct) score++;
-      return { id: q.id, question: q.text, correctOption: q.correctOption, userAnswer: answers[q.id], isCorrect: correct };
-    });
-
+    const { score, total, results } = scoreAnswers(rows, answers);
     console.log('Score calculated:', score);
-    res.json({ score, total: rows.length, results });
+    res.json({ score, total, results });
   } catch (error) {
     console.error('Error in submitAnswers:', error);
     res.status(500).json({ error: 'Failed to submit answers' });
