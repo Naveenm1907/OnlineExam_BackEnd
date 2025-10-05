@@ -1,30 +1,52 @@
-import Database from "better-sqlite3";
+// In-memory database for serverless compatibility
+const questions = [
+  {
+    id: 1,
+    text: "What is the capital of France?",
+    optionA: "Berlin",
+    optionB: "Paris", 
+    optionC: "Rome",
+    optionD: "Madrid",
+    correctOption: "B"
+  },
+  {
+    id: 2,
+    text: "2 + 2 = ?",
+    optionA: "3",
+    optionB: "4",
+    optionC: "5", 
+    optionD: "6",
+    correctOption: "B"
+  },
+  {
+    id: 3,
+    text: "Which planet is known as the Red Planet?",
+    optionA: "Mars",
+    optionB: "Earth",
+    optionC: "Jupiter",
+    optionD: "Venus", 
+    correctOption: "A"
+  }
+];
 
-const db = new Database("quiz.db");
-
-db.prepare(`
-CREATE TABLE IF NOT EXISTS questions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  text TEXT,
-  optionA TEXT,
-  optionB TEXT,
-  optionC TEXT,
-  optionD TEXT,
-  correctOption TEXT
-)
-`).run();
-
-const count = db.prepare("SELECT COUNT(*) AS count FROM questions").get().count;
-if (count === 0) {
-  const insert = db.prepare(`INSERT INTO questions 
-  (text, optionA, optionB, optionC, optionD, correctOption)
-  VALUES (?, ?, ?, ?, ?, ?)`);
-  const data = [
-    ["What is the capital of France?", "Berlin", "Paris", "Rome", "Madrid", "B"],
-    ["2 + 2 = ?", "3", "4", "5", "6", "B"],
-    ["Which planet is known as the Red Planet?", "Mars", "Earth", "Jupiter", "Venus", "A"],
-  ];
-  for (const q of data) insert.run(...q);
-}
+// Mock database interface for compatibility
+const db = {
+  prepare: (query) => {
+    if (query.includes("SELECT * FROM questions")) {
+      return {
+        all: () => questions
+      };
+    }
+    if (query.includes("SELECT COUNT(*) AS count FROM questions")) {
+      return {
+        get: () => ({ count: questions.length })
+      };
+    }
+    return {
+      run: () => {},
+      all: () => []
+    };
+  }
+};
 
 export default db;
